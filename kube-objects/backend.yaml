@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deploy
+  namespace: bms
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend
+          # TODO: CM
+          image: ghcr.io/farzaddm/apartment-manager-backend/apt_backend:latest
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            # TODO: CM
+            - name: DB_HOST
+              value: postgres-svc
+
+            - name: DB_PORT
+              value: "5432"
+
+            - name: DB_USER
+              value: apt_user
+
+            - name: DB_PASSWORD
+              value: apt_password_123
+
+            - name: DB_NAME
+              value: app_db
+
+            - name: DB_SSLMODE
+              value: disable
+
+            - name: REDIS_HOST
+              value: redis-svc
+
+            - name: REDIS_PORT
+              value: "6379"
+
+            # TODO: Secret
+            - name: REDIS_PASSWORD
+              value: YOUR_REDIS_PASSWORD
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+      restartPolicy: Always
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: bms
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: backend
+
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
