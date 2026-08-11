@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-migration
+  namespace: bms
+
+spec:
+  backoffLimit: 3
+
+  template:
+    metadata:
+      labels:
+        app: postgres-migration
+
+    spec:
+      restartPolicy: OnFailure
+
+      containers:
+        - name: migration
+          image: ghcr.io/kukymbr/goose-docker:latest
+
+          env:
+            - name: GOOSE_DRIVER
+              value: postgres
+
+            - name: GOOSE_DBSTRING
+              value: "postgres://apt_user:apt_password_123@postgres-svc:5432/app_db?sslmode=disable"
+
+            - name: GOOSE_COMMAND
+              value: up
+
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+
+      volumes:
+        - name: migrations
+          persistentVolumeClaim:
+            claimName: migration-pvc
