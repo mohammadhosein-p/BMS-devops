@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: bms
+
+data:
+  APP_ENV: "development"
+  APP_PORT: "8080"
+
+  DB_HOST: "postgres-svc"
+  DB_PORT: "5432"
+  DB_NAME: "app_db"
+  DB_SSLMODE: "disable"
+
+  REDIS_HOST: "redis-svc"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secret
+  namespace: bms
+
+type: Opaque
+
+stringData:
+  APP_SECRET_KEY: "Apartment_Manager_Secret_2026_Unique"
+
+  DB_USER: "apt_user"
+  DB_PASSWORD: "apt_password_123"
+
+  REDIS_PASSWORD: "apt_redis_pass_456"
+
+  JWT_ACCESS_SECRET: "Apartment_Manager_Access_Secret_2026_Unique"
+  JWT_ACCESS_EXPIRE_MINUTES: "15"
+
+  JWT_REFRESH_SECRET: "Apartment_Manager_Refresh_Secret_2026_Unique"
+  JWT_REFRESH_EXPIRE_DAYS: "7"
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deploy
+  namespace: bms
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/farzaddm/apartment-manager-backend/apt_backend:latest
+
+          ports:
+            - containerPort: 8080
+
+          envFrom:
+            - configMapRef:
+                name: backend-config
+
+            - secretRef:
+                name: backend-secret
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+      restartPolicy: Always
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: bms
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: backend
+
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
