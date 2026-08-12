@@ -52,6 +52,13 @@ data:
         url: http://prometheus-svc.monitoring.svc.cluster.local:9090
         isDefault: true
         editable: false
+        
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100
+        isDefault: false
+        editable: false
 
 ---
 apiVersion: v1
@@ -76,132 +83,6 @@ data:
           path: /var/lib/grafana/dashboards
 
 ---
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: grafana-dashboards
-#   namespace: monitoring
-
-# data:
-
-#   kubernetes-overview.json: |
-#     {
-#       "title": "Kubernetes Overview",
-#       "uid": "kubernetes-overview",
-#       "schemaVersion": 39,
-#       "version": 1,
-
-#       "refresh": "10s",
-
-#       "time": {
-#         "from": "now-30m",
-#         "to": "now"
-#       },
-
-#       "panels": [
-#         {
-#           "id": 1,
-#           "title": "Nodes",
-#           "type": "stat",
-
-#           "gridPos": {
-#             "h": 4,
-#             "w": 6,
-#             "x": 0,
-#             "y": 0
-#           },
-
-#           "targets": [
-#             {
-#               "expr": "count(kube_node_info)",
-#               "refId": "A"
-#             }
-#           ]
-#         },
-
-#         {
-#           "id": 2,
-#           "title": "Pods",
-#           "type": "stat",
-
-#           "gridPos": {
-#             "h": 4,
-#             "w": 6,
-#             "x": 6,
-#             "y": 0
-#           },
-
-#           "targets": [
-#             {
-#               "expr": "count(kube_pod_info)",
-#               "refId": "A"
-#             }
-#           ]
-#         },
-
-#         {
-#           "id": 3,
-#           "title": "Running Pods",
-#           "type": "stat",
-
-#           "gridPos": {
-#             "h": 4,
-#             "w": 6,
-#             "x": 12,
-#             "y": 0
-#           },
-
-#           "targets": [
-#             {
-#               "expr": "count(kube_pod_status_phase{phase=\"Running\"})",
-#               "refId": "A"
-#             }
-#           ]
-#         },
-
-#         {
-#           "id": 4,
-#           "title": "CPU Usage",
-#           "type": "timeseries",
-
-#           "gridPos": {
-#             "h": 8,
-#             "w": 12,
-#             "x": 0,
-#             "y": 4
-#           },
-
-#           "targets": [
-#             {
-#               "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))",
-#               "legendFormat": "CPU Usage %",
-#               "refId": "A"
-#             }
-#           ]
-#         },
-
-#         {
-#           "id": 5,
-#           "title": "Memory Usage",
-#           "type": "timeseries",
-
-#           "gridPos": {
-#             "h": 8,
-#             "w": 12,
-#             "x": 12,
-#             "y": 4
-#           },
-
-#           "targets": [
-#             {
-#               "expr": "100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))",
-#               "legendFormat": "Memory Usage %",
-#               "refId": "A"
-#             }
-#           ]
-#         }
-#       ]
-#     }
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -451,13 +332,99 @@ data:
               "refId": "A"
             }
           ]
+        },
+
+        {
+          "title": "Backend Logs",
+          "type": "logs",
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 46
+          },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "targets": [
+            {
+              "expr": "{namespace=\"bms\", app=\"backend\"}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "showCommonLabels": false,
+            "wrapLines": true,
+            "prettifyLogMessage": false,
+            "enableLogDetails": true,
+            "deduplication": "none"
+          }
+        },
+
+        {
+          "title": "Backend HTTP Status Codes",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 58
+          },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "targets": [
+            {
+              "expr": "sum by (status) (count_over_time({namespace=\"bms\", app=\"backend\"} | regexp `.*\\|\\s+(?P<status>[0-9]{3})\\s+\\|.*` [$__interval]))",
+              "legendFormat": "{{status}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            }
+          }
+        },
+
+        {
+          "title": "Backend HTTP Requests",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 58
+          },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "targets": [
+            {
+              "expr": "sum(count_over_time({namespace=\"bms\", app=\"backend\"} | regexp `.*\\|\\s+[0-9]{3}\\s+\\|.*\\|\\s+(?P<method>[A-Z]+)\\s+\".*` [$__interval]))",
+              "legendFormat": "HTTP Requests",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps"
+            }
+          }
         }
       ],
       "schemaVersion": 39,
       "style": "dark",
       "tags": [
         "kubernetes",
-        "prometheus"
+        "prometheus",
+        "loki",
+        "backend"
       ],
       "templating": {
         "list": []
@@ -559,7 +526,7 @@ spec:
 
         - name: dashboards
           configMap:
-            name: grafana-dashboards
+            name: grafana-dashboard
 
 ---
 apiVersion: v1
