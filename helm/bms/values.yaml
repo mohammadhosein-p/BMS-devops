@@ -106,10 +106,6 @@
 
 # affinity: {}
 
-backend:
-  replicaCount: 2
-
-
 
 # TODO: volume permission 1001:1001
 postgresql:
@@ -174,6 +170,7 @@ redis:
       ports:
         redis: 6379
 
+
 migration:
   enabled: true
   image: 
@@ -182,3 +179,37 @@ migration:
   driver: postgres
   command: up
   sslmode: disable
+
+
+backend:
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/farzaddm/apartment-manager-backend/apt_backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  config:
+    appEnv: "development"
+    appPort: "8080"
+    dbSslMode: "disable"
+    redisDb: "0"
+
+  secrets:
+    appSecretKey: "Apartment_Manager_Secret_2026_Unique"
+    jwtAccessSecret: "Apartment_Manager_Access_Secret_2026_Unique"
+    jwtAccessExpireMinutes: "15"
+    jwtRefreshSecret: "Apartment_Manager_Refresh_Secret_2026_Unique"
+    jwtRefreshExpireDays: "7"

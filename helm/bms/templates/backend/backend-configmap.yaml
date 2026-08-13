@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-backend-config
+data:
+  APP_ENV: {{ .Values.backend.config.appEnv | quote }}
+  APP_PORT: {{ .Values.backend.config.appPort | quote }}
+
+  DB_HOST: "{{ .Release.Name }}-postgresql"
+  DB_PORT: "{{ .Values.postgresql.primary.service.ports.postgresql | default 5432 }}"
+  DB_NAME: {{ .Values.postgresql.auth.database | quote }}
+  DB_SSLMODE: {{ .Values.backend.config.dbSslMode | quote }}
+
+  REDIS_HOST: "{{ .Release.Name }}-redis-master"
+  REDIS_PORT: "{{ .Values.redis.master.service.ports.redis | default 6379 }}"
+  REDIS_DB: {{ .Values.backend.config.redisDb | quote }}
