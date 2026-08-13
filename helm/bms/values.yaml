@@ -111,7 +111,7 @@ backend:
 
 
 
-# TODO: volume permission
+# TODO: volume permission 1001:1001
 postgresql:
   enabled: true
   image:
@@ -173,3 +173,12 @@ redis:
     service:
       ports:
         redis: 6379
+
+migration:
+  enabled: true
+  image: 
+    repository: ghcr.io/mohammadhosein-p/apartment-manager-backend/apt_migration
+    tag: latest
+  driver: postgres
+  command: up
+  sslmode: disable
