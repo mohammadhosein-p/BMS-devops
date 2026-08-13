@@ -213,3 +213,28 @@ backend:
     jwtAccessExpireMinutes: "15"
     jwtRefreshSecret: "Apartment_Manager_Refresh_Secret_2026_Unique"
     jwtRefreshExpireDays: "7"
+
+
+frontend:
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/mohammadhosein-p/aparmo-fr
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
+
+  config:
+    baseUrl: "/api"
