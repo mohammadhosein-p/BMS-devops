@@ -238,3 +238,9 @@ frontend:
 
   config:
     baseUrl: "/api"
+
+ingress:
+  enabled: true
+  className: nginx
+
+  host: ""
