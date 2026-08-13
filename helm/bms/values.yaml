@@ -110,10 +110,14 @@ backend:
   replicaCount: 2
 
 
+
+# TODO: volume permission
 postgresql:
   enabled: true
   image:
-    tag: "15-alpine"
+    repository: bitnami/postgresql
+    tag: latest
+
   auth:
     database: app_db
     username: apt_user
@@ -135,12 +139,15 @@ postgresql:
         postgresql: 5432
 
 
+
+# TODO: volume permission
 redis:
   enabled: true
   architecture: standalone
 
   image:
-    tag: "7.0-alpine"
+    repository: bitnami/redis
+    tag: latest
 
   auth:
     enabled: false
