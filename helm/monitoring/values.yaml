@@ -63,6 +63,98 @@ grafana:
           access: proxy
           isDefault: true
 
+        - name: Loki
+          type: loki
+          uid: loki
+          url: http://monitoring-chart-loki.monitoring.svc.cluster.local:3100
+          access: proxy
+
+# TODO: volume permission 10001:10001
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 500Mi
+      storageClass: "manual-loki"
+
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+
+  chunksCache:
+    allocatedMemory: 64
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  resultsCache:
+    allocatedMemory: 64
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+
+alloy:
+  enabled: true
+  alloy:
+    configMap:
+      content: |-
+        // کشف پادهای کوبرنتیز
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        // خواندن لاگ پادها از روی نود
+        loki.source.kubernetes "pod_logs" {
+          targets    = discovery.kubernetes.pods.targets
+          forward_to = [loki.process.pod_logs.receiver]
+        }
+
+        // افزودن Label های کاربردی مثل namespace و pod name
+        loki.process "pod_logs" {
+          stage.static_labels {
+            values = {
+              cluster = "minikube",
+            }
+          }
+          forward_to = [loki.write.endpoint.receiver]
+        }
+
+        // ارسال لاگ‌ها به سرویس Loki
+        loki.write "endpoint" {
+          endpoint {
+            url = "http://monitoring-chart-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+          }
+        }
 
 ingress:
   enabled: true
