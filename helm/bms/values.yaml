@@ -29,7 +29,7 @@ postgresql:
 
 
 
-# TODO: volume permission
+# TODO: volume permission 1001:1001
 redis:
   enabled: true
   architecture: standalone
