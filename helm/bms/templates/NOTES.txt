@@ -1,1 +1,30 @@
-test
+===============================================================================
+  BMS Application (Release: {{ .Release.Name }}) Deployed Successfully!
+===============================================================================
+
+1. Check application pod status:
+   kubectl get pods -n {{ .Release.Namespace }}
+
+2. Access Frontend Application:
+{{- if .Values.ingress.enabled }}
+   - Ingress Host: http://{{ .Values.ingress.host | default "localhost" }}/
+{{- else }}
+   - Run port-forward command:
+     kubectl port-forward svc/{{ .Release.Name }}-frontend-svc 8080:{{ .Values.frontend.service.port }} -n {{ .Release.Namespace }}
+   - Open browser: http://localhost:8080
+{{- endif }}
+
+3. Access Backend API:
+{{- if .Values.ingress.enabled }}
+   - Ingress Endpoint: http://{{ .Values.ingress.host | default "localhost" }}/api
+{{- else }}
+   - Run port-forward command:
+     kubectl port-forward svc/{{ .Release.Name }}-backend-svc 8081:{{ .Values.backend.service.port }} -n {{ .Release.Namespace }}
+   - Test API: http://localhost:8081/
+{{- endif }}
+
+4. Databases (Internal Cluster endpoints):
+   - PostgreSQL: {{ .Release.Name }}-postgresql:{{ .Values.postgresql.primary.service.ports.postgresql | default 5432 }}
+   - Redis:      {{ .Release.Name }}-redis-master:{{ .Values.redis.master.service.ports.redis | default 6379 }}
+
+===============================================================================
