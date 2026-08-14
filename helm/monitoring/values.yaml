@@ -5,6 +5,9 @@ prometheus:
     enabled: true
     retention: "10d"
 
+    ingress:
+      enabled: false
+
     persistentVolume:
       enabled: true
       storageClass: "manual-prometheus"
@@ -29,3 +32,9 @@ prometheus:
     enabled: false
   prometheus-pushgateway:
     enabled: false
+
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
