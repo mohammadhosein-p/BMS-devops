@@ -1,1 +1,22 @@
+*.secret.yaml
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
 /final_compose
+
+
+charts/*.tgz
+charts/
+
+*.tgz
+values-local.yaml
+values-dev.yaml
+values-prod.yaml
+
+
