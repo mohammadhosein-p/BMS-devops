@@ -34,6 +34,36 @@ prometheus:
     enabled: false
 
 
+grafana:
+  enabled: true
+  
+  adminUser: admin
+  adminPassword: "adminpassword"
+
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s/grafana/"
+      serve_from_sub_path: true
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus
+          url: http://monitoring-chart-prometheus-server.monitoring.svc.cluster.local:80
+          access: proxy
+          isDefault: true
+
+
 ingress:
   enabled: true
   className: nginx
