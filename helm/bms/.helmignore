@@ -1,35 +1,23 @@
 # Patterns to ignore when building packages.
 # This supports shell glob matching, relative path matching, and
 # negation (prefixed with !). Only one pattern per line.
-
-# OS & File System
 .DS_Store
-Thumbs.db
-
-# Common VCS dirs & Git files
+# Common VCS dirs
 .git/
 .gitignore
-.helmignore
-.github/
-.gitlab-ci.yml
-
-# Backup and Temporary files
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+.svn/
+# Common backup files
 *.swp
 *.bak
 *.tmp
 *.orig
 *~
-
 # Various IDEs
 .project
 .idea/
 *.tmproj
 .vscode/
-
-# Local values & secrets for testing
-values-local.yaml
-values-dev.yaml
-*.secret.yaml
-
-# Downloaded subchart archives
-*.tgz
