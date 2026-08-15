@@ -5,6 +5,9 @@ prometheus:
     enabled: true
     retention: "10d"
 
+    extraFlags:
+      - "web.enable-remote-write-receiver"
+
     ingress:
       enabled: false
 
@@ -269,6 +272,10 @@ tempo:
   tempo:
     retention: 24h
 
+    metricsGenerator:
+      enabled: true
+      remoteWriteUrl: "http://monitoring-chart-prometheus-server.monitoring.svc.cluster.local/api/v1/write"
+
   persistence:
     enabled: true
     storageClassName: "manual-tempo"
@@ -281,7 +288,6 @@ tempo:
     limits:
       cpu: 500m
       memory: 512Mi
-
 ingress:
   enabled: true
   className: nginx
