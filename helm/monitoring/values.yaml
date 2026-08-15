@@ -69,6 +69,18 @@ grafana:
           url: http://monitoring-chart-loki.monitoring.svc.cluster.local:3100
           access: proxy
 
+        - name: Tempo
+          type: tempo
+          uid: tempo
+          url: http://monitoring-chart-tempo.monitoring.svc.cluster.local:3100
+          access: proxy
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+              spanStartTimeShift: "-5m"
+              spanEndTimeShift: "5m"
+              filterByTraceID: true
+
 # TODO: volume permission 10001:10001
 loki:
   enabled: true
@@ -125,14 +137,27 @@ loki:
         
 alloy:
   enabled: true
+
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+
   alloy:
     configMap:
-      # following lines used to activate debugging in alloy to check data flow
-      # livedebugging {
-      #   enabled = true
-      # }
       content: |-
-        
+      
+        // following lines used to activate debugging in alloy to check data flow
+        livedebugging {
+          enabled = true
+        }
+        //logging section
+
         discovery.kubernetes "pods" {
           role = "pod"
         }
@@ -198,6 +223,53 @@ alloy:
           }
         }
 
+        //trace section 
+
+        otelcol.receiver.otlp "backend" {
+          grpc {
+            endpoint = "0.0.0.0:4317"
+          }
+          http {
+            endpoint = "0.0.0.0:4318"
+          }
+
+          output {
+            traces = [otelcol.processor.batch.backend.input]
+          }
+        }
+
+        otelcol.processor.batch "backend" {
+          output {
+            traces = [otelcol.exporter.otlp.tempo.input]
+          }
+        }
+
+        otelcol.exporter.otlp "tempo" {
+          client {
+            endpoint = "monitoring-chart-tempo.monitoring.svc.cluster.local:4317"
+            tls {
+              insecure = true
+            }
+          }
+        }
+
+
+tempo:
+  tempo:
+    retention: 24h
+
+  persistence:
+    enabled: true
+    storageClassName: "manual-tempo"
+    size: 500Mi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 ingress:
   enabled: true
