@@ -121,40 +121,83 @@ loki:
         memory: 64Mi
       limits:
         memory: 128Mi
-
-
+        
+        
 alloy:
   enabled: true
   alloy:
     configMap:
+      # following lines used to activate debugging in alloy to check data flow
+      # livedebugging {
+      #   enabled = true
+      # }
       content: |-
-        // کشف پادهای کوبرنتیز
+        
         discovery.kubernetes "pods" {
           role = "pod"
         }
 
-        // خواندن لاگ پادها از روی نود
+        discovery.relabel "pod_logs" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+        }
+
         loki.source.kubernetes "pod_logs" {
-          targets    = discovery.kubernetes.pods.targets
+          targets    = discovery.relabel.pod_logs.output
           forward_to = [loki.process.pod_logs.receiver]
         }
 
-        // افزودن Label های کاربردی مثل namespace و pod name
         loki.process "pod_logs" {
+          stage.cri {}
+
+          stage.labels {
+            values = {
+              stream = "",
+            }
+          }
+
           stage.static_labels {
             values = {
               cluster = "minikube",
             }
           }
+
+          stage.drop {
+            source = "content"
+            expression = ".*kube-probe.*"
+          }
+
+          stage.static_labels {
+            values = {
+              cluster = "minikube",
+            }
+          }
+
           forward_to = [loki.write.endpoint.receiver]
         }
 
-        // ارسال لاگ‌ها به سرویس Loki
         loki.write "endpoint" {
           endpoint {
             url = "http://monitoring-chart-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
           }
         }
+
 
 ingress:
   enabled: true
