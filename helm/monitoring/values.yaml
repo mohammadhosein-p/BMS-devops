@@ -1,0 +1,288 @@
+
+# TODO: volume permission 65534:65534
+prometheus:
+  server:
+    enabled: true
+    retention: "10d"
+
+    ingress:
+      enabled: false
+
+    persistentVolume:
+      enabled: true
+      storageClass: "manual-prometheus"
+      size: "500Mi"
+
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
+  prometheus-node-exporter:
+    enabled: true
+
+  kube-state-metrics:
+    enabled: true
+
+
+  alertmanager:
+    enabled: false
+  prometheus-pushgateway:
+    enabled: false
+
+
+grafana:
+  enabled: true
+  
+  adminUser: admin
+  adminPassword: "adminpassword"
+
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s/grafana/"
+      serve_from_sub_path: true
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus
+          url: http://monitoring-chart-prometheus-server.monitoring.svc.cluster.local:80
+          access: proxy
+          isDefault: true
+
+        - name: Loki
+          type: loki
+          uid: loki
+          url: http://monitoring-chart-loki.monitoring.svc.cluster.local:3100
+          access: proxy
+
+        - name: Tempo
+          type: tempo
+          uid: tempo
+          url: http://monitoring-chart-tempo.monitoring.svc.cluster.local:3100
+          access: proxy
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+              spanStartTimeShift: "-5m"
+              spanEndTimeShift: "5m"
+              filterByTraceID: true
+
+# TODO: volume permission 10001:10001
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 500Mi
+      storageClass: "manual-loki"
+
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+
+  chunksCache:
+    allocatedMemory: 64
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  resultsCache:
+    allocatedMemory: 64
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+        
+        
+alloy:
+  enabled: true
+
+  alloy:
+    
+    extraPorts:
+      - name: otlp-grpc
+        port: 4317
+        targetPort: 4317
+        protocol: TCP
+      - name: otlp-http
+        port: 4318
+        targetPort: 4318
+        protocol: TCP
+    extraArgs:
+      - "--stability.level=experimental"
+
+
+    configMap:
+      content: |-
+      
+        // following lines used to activate debugging in alloy to check data flow
+        livedebugging {
+          enabled = true
+        }
+        //logging section
+
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        discovery.relabel "pod_logs" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+        }
+
+        loki.source.kubernetes "pod_logs" {
+          targets    = discovery.relabel.pod_logs.output
+          forward_to = [loki.process.pod_logs.receiver]
+        }
+
+        loki.process "pod_logs" {
+          stage.cri {}
+
+          stage.labels {
+            values = {
+              stream = "",
+            }
+          }
+
+          stage.static_labels {
+            values = {
+              cluster = "minikube",
+            }
+          }
+
+          stage.drop {
+            source = "content"
+            expression = ".*kube-probe.*"
+          }
+
+          stage.static_labels {
+            values = {
+              cluster = "minikube",
+            }
+          }
+
+          forward_to = [loki.write.endpoint.receiver]
+        }
+
+        loki.write "endpoint" {
+          endpoint {
+            url = "http://monitoring-chart-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+          }
+        }
+
+        //trace section 
+
+        otelcol.exporter.debug "console" {
+          verbosity = "detailed"
+        }
+
+        otelcol.receiver.otlp "backend" {
+          grpc {
+            endpoint = "0.0.0.0:4317"
+          }
+          http {
+            endpoint = "0.0.0.0:4318"
+          }
+
+          output {
+            traces = [
+              otelcol.processor.batch.backend.input,
+              otelcol.exporter.debug.console.input, // ارسال یک نسخه به لاگ جهت تست
+            ]
+          }
+        }
+
+        otelcol.processor.batch "backend" {
+          output {
+            traces = [otelcol.exporter.otlp.tempo.input]
+          }
+        }
+
+        otelcol.exporter.otlp "tempo" {
+          client {
+            endpoint = "monitoring-chart-tempo.monitoring.svc.cluster.local:4317"
+            tls {
+              insecure = true
+            }
+          }
+        }
+
+# TODO: volume permission 10001:10001
+tempo:
+  tempo:
+    retention: 24h
+
+  persistence:
+    enabled: true
+    storageClassName: "manual-tempo"
+    size: 500Mi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""

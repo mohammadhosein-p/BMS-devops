@@ -29,7 +29,7 @@ postgresql:
 
 
 
-# TODO: volume permission
+# TODO: volume permission 1001:1001
 redis:
   enabled: true
   architecture: standalone
@@ -72,13 +72,14 @@ migration:
   driver: postgres
   command: up
   sslmode: disable
+  otelEndpoint: "monitoring-chart-alloy.monitoring.svc.cluster.local:4317"
 
 
 backend:
   replicaCount: 1
 
   image:
-    repository: ghcr.io/farzaddm/apartment-manager-backend/apt_backend
+    repository: ghcr.io/mohammadhosein-p/apartment-manager-backend/apt_backend
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -99,6 +100,8 @@ backend:
     appPort: "8080"
     dbSslMode: "disable"
     redisDb: "0"
+    # TODO: tracing route should get dynamic based on monitoring chart
+    otelEndpoint: "monitoring-chart-alloy.monitoring.svc.cluster.local:4317"
 
   secrets:
     appSecretKey: "Apartment_Manager_Secret_2026_Unique"
