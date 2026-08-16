@@ -23,6 +23,15 @@ applications:
 # $secret = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}"
 # [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($secret))
 argo-cd:
+  
+  # github repository for custom charts
+  repository-info:
+    # TODO: make info secret
+    # in case of private repository
+    PAT: ""
+    url: "https://github.com/mohammadhosein-p/BMS-devops"
+    username: ""  
+
   global:
     domain: localhost
   server:
