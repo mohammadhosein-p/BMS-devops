@@ -17,7 +17,11 @@ applications:
     destinationNamespace: monitoring
     valueFiles:
       - values.yaml
+      
 
+# get pass
+# $secret = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}"
+# [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($secret))
 argo-cd:
   global:
     domain: localhost
@@ -26,3 +30,8 @@ argo-cd:
       - --insecure
   dex:
     enabled: false
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: ""
