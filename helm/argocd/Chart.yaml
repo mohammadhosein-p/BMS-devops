@@ -1,0 +1,11 @@
+apiVersion: v2
+name: argocd-wrapper
+description: "Umbrella Chart for ArgoCD and GitOps Applications"
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: argo-cd
+    version: "10.3.3"
+    repository: https://argoproj.github.io/argo-helm

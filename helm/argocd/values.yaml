@@ -1,0 +1,37 @@
+repo:
+  url: "https://github.com/mohammadhosein-p/BMS-devops.git"
+  targetRevision: "HEAD"
+
+  private: true
+  username: "" # Github Username
+  token: "" # Github Personal Access Token (PAT)
+
+applications:
+  - name: bms-app
+    path: "helm/bms"
+    destinationNamespace: default
+    valueFiles:
+      - values.yaml
+  - name: monitoring-app
+    path: "helm/monitoring"
+    destinationNamespace: monitoring
+    valueFiles:
+      - values.yaml
+      
+
+# get pass
+# $secret = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}"
+# [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($secret))
+argo-cd:
+  global:
+    domain: localhost
+  server:
+    extraArgs:
+      - --insecure
+  dex:
+    enabled: false
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: ""
