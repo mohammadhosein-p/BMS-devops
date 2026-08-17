@@ -10,7 +10,7 @@ prometheus:
 
     persistentVolume:
       enabled: true
-      storageClass: "manual-prometheus"
+      storageClass: ""
       size: "500Mi"
 
     resources:
@@ -107,7 +107,7 @@ loki:
     persistence:
       enabled: true
       size: 500Mi
-      storageClass: "manual-loki"
+      storageClass: ""
 
   backend:
     replicas: 0
@@ -271,7 +271,7 @@ tempo:
 
   persistence:
     enabled: true
-    storageClassName: "manual-tempo"
+    storageClassName: ""
     size: 500Mi
 
   resources:
