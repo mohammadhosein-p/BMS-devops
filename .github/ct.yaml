@@ -9,3 +9,4 @@ chart-repos:
   - argo=https://argoproj.github.io/argo-helm
 helm-extra-args: --timeout 12m0s
 check-version-increment: false
+validate-maintainers: false

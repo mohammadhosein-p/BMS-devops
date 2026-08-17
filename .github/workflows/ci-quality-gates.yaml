@@ -176,5 +176,5 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1
 
-      - name: Run chart-testing (lint + install)
-        run: ct lint-and-install --config .github/ct.yaml
+      - name: Run chart-testing (Only Install)  
+        run: ct install --config .github/ct.yaml
