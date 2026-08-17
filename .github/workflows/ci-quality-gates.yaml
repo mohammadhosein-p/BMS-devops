@@ -106,3 +106,38 @@ jobs:
       - name: Validate raw manifests
         run: |
           kubeconform -summary -strict -ignore-missing-schemas ./manifests-raw
+
+  trivy-config:
+    name: IaC Security Scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.16.3"
+
+      - name: Add chart repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
+
+      - name: Build chart dependencies
+        run: |
+          helm dependency build ./helm/argocd
+          helm dependency build ./helm/bms
+          helm dependency build ./helm/monitoring
+
+      - name: Run Trivy config scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
+          hide-progress: true
