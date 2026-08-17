@@ -1,0 +1,20 @@
+repo:
+  url: "https://github.com/argoproj/argocd-example-apps.git"
+  targetRevision: "HEAD"
+  private: false
+  username: ""
+  token: ""
+
+applications: []
+
+argo-cd:
+  global:
+    domain: localhost
+  server:
+    extraArgs:
+      - --insecure
+  dex:
+    enabled: false
+
+ingress:
+  enabled: false
