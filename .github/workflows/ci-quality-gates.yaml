@@ -24,3 +24,36 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  helm-lint:
+    name: Helm Chart Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.16.3"
+
+      - name: Add chart repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
+
+      - name: Build chart dependencies
+        run: |
+          helm dependency build ./helm/argocd
+          helm dependency build ./helm/bms
+          helm dependency build ./helm/monitoring
+
+      - name: Lint charts
+        run: |
+          helm lint ./helm/argocd
+          helm lint ./helm/bms
+          helm lint ./helm/monitoring
