@@ -4,6 +4,7 @@ description: BMS (Apartment Manager) Helm Chart with PostgreSQL and Redis Subcha
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
+icon: https://github.com/mohammadhosein-p/BMS-Frontend/blob/main/public/Logo.png
 
 dependencies:
   - name: postgresql

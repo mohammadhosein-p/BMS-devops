@@ -1,0 +1,12 @@
+remote: origin
+target-branch: main
+chart-dirs:
+  - helm
+chart-repos:
+  - prometheus-community=https://prometheus-community.github.io/helm-charts
+  - grafana=https://grafana.github.io/helm-charts
+  - bitnami=https://charts.bitnami.com/bitnami
+  - argo=https://argoproj.github.io/argo-helm
+helm-extra-args: --timeout 12m0s
+check-version-increment: false
+validate-maintainers: false
