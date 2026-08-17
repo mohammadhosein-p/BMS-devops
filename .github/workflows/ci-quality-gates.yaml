@@ -142,3 +142,39 @@ jobs:
           severity: "CRITICAL"
           skip-dirs: "helm/*/charts"
           hide-progress: true
+
+  chart-testing:
+    name: Chart Install Test (chart-testing)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.16.3"
+
+      - name: Setup Python 
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Setup Chart Testing
+        uses: helm/chart-testing-action@v2
+
+      - name: Add chart repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+
+      - name: Run chart-testing (lint + install)
+        run: ct lint-and-install --config .github/ct.yaml --helm-extra-args "--timeout 12m0s"
