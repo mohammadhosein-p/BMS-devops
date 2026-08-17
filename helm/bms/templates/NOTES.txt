@@ -12,7 +12,7 @@
    - Run port-forward command:
      kubectl port-forward svc/{{ .Release.Name }}-frontend-svc 8080:{{ .Values.frontend.service.port }} -n {{ .Release.Namespace }}
    - Open browser: http://localhost:8080
-{{- endif }}
+{{- end }}
 
 3. Access Backend API:
 {{- if .Values.ingress.enabled }}
@@ -21,7 +21,7 @@
    - Run port-forward command:
      kubectl port-forward svc/{{ .Release.Name }}-backend-svc 8081:{{ .Values.backend.service.port }} -n {{ .Release.Namespace }}
    - Test API: http://localhost:8081/
-{{- endif }}
+{{- end }}
 
 4. Databases (Internal Cluster endpoints):
    - PostgreSQL: {{ .Release.Name }}-postgresql:{{ .Values.postgresql.primary.service.ports.postgresql | default 5432 }}
