@@ -18,5 +18,5 @@ spec:
               app.kubernetes.io/component: backend
       ports:
         - protocol: TCP
-          port: {{ .Values.redis.service.ports.redis }}
+          port: {{ .Values.redis.master.service.ports.redis }}
 {{- end }}

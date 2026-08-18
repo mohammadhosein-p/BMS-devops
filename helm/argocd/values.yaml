@@ -35,3 +35,7 @@ ingress:
   enabled: true
   className: "nginx"
   host: ""
+
+networkPolicy:
+  enabled: true
+  monitoringNamespace: "monitoring"
