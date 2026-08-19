@@ -1,19 +1,19 @@
 ---
 - name: Download kubectl
-  get_url:
+  ansible.builtin.get_url:
     url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/{{ system_arch }}/kubectl"
     dest: "{{ bin_dir }}/kubectl"
     mode: '0755'
   become: true
 
 - name: Download and unpack Helm
-  unarchive:
+  ansible.builtin.unarchive:
     src: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ system_arch }}.tar.gz"
     dest: "/tmp"
     remote_src: true
 
 - name: Move Helm binary
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/linux-{{ system_arch }}/helm"
     dest: "{{ bin_dir }}/helm"
     mode: '0755'
@@ -21,7 +21,7 @@
   become: true
 
 - name: Download Kind
-  get_url:
+  ansible.builtin.get_url:
     url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ system_arch }}"
     dest: "{{ bin_dir }}/kind"
     mode: '0755'

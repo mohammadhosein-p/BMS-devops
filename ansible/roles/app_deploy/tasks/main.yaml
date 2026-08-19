@@ -1,6 +1,6 @@
 ---
 - name: Install Python Kubernetes libraries via apt
-  apt:
+  ansible.builtin.apt:
     name:
       - python3-kubernetes
       - python3-jsonpatch
@@ -30,13 +30,15 @@
     - { name: 'argo', url: 'https://argoproj.github.io/argo-helm' }
 
 - name: Update Helm repositories
-  command: helm repo update
+  ansible.builtin.command: helm repo update
+  changed_when: false
 
 - name: Build Helm chart dependencies for monitoring and argocd
-  command: "helm dependency build {{ chart_base_path }}/{{ item }}"
+  ansible.builtin.command: "helm dependency build {{ chart_base_path }}/{{ item }}"
   loop:
     - monitoring
     - argocd
+  changed_when: false
 
 - name: Deploy BMS Application Helm chart
   kubernetes.core.helm:
