@@ -1,0 +1,3 @@
+---
+cluster_name: "dev-cluster"
+kind_config_path: "/tmp/kind-config.yaml"
