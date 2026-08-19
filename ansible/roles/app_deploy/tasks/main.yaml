@@ -1,11 +1,13 @@
 ---
-- name: Install Python Kubernetes library
-  pip:
+- name: Install Python Kubernetes libraries via apt
+  apt:
     name:
-      - kubernetes
-      - jsonpatch
-      - PyYAML
+      - python3-kubernetes
+      - python3-jsonpatch
+      - python3-yaml
     state: present
+    update_cache: true
+  become: true
 
 - name: Create application namespaces
   kubernetes.core.k8s:
