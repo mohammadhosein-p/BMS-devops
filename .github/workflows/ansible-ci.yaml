@@ -23,10 +23,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Linting Tools
+      - name: Install Linting Tools & Ansible Collections
         run: |
           python -m pip install --upgrade pip
-          pip install ansible-core ansible-lint yamllint
+          pip install ansible-core ansible-lint yamllint kubernetes jsonpatch pyyaml
+          ansible-galaxy collection install kubernetes.core community.general
 
       - name: Check Ansible Playbook Syntax
         run: |
@@ -35,4 +36,4 @@ jobs:
 
       - name: Run Ansible Lint
         run: |
-          ansible-lint ansible/site.yaml || true
+          ansible-lint ansible/site.yaml
