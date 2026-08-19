@@ -1,6 +1,6 @@
 ---
 - name: Check if Kind cluster already exists
-  command: kind get clusters
+  command: sg docker -c "kind get clusters"
   register: existing_clusters
   changed_when: false
 
@@ -12,5 +12,5 @@
   when: cluster_name not in existing_clusters.stdout_lines
 
 - name: Create Kind cluster
-  command: "kind create cluster --name {{ cluster_name }} --config {{ kind_config_path }}"
+  command: sg docker -c "kind create cluster --name {{ cluster_name }} --config {{ kind_config_path }}"
   when: cluster_name not in existing_clusters.stdout_lines
