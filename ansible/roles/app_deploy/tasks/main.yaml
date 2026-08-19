@@ -1,0 +1,40 @@
+---
+- name: Install Python Kubernetes library
+  pip:
+    name:
+      - kubernetes
+      - jsonpatch
+      - PyYAML
+    state: present
+
+- name: Create application namespaces
+  kubernetes.core.k8s:
+    name: "{{ item }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  loop:
+    - argocd
+    - monitoring
+    - bms
+
+- name: Deploy BMS Application Helm chart
+  kubernetes.core.helm:
+    name: bms
+    chart_ref: "{{ chart_base_path }}/bms"
+    release_namespace: bms
+    state: present
+
+- name: Deploy Monitoring Helm chart
+  kubernetes.core.helm:
+    name: monitoring
+    chart_ref: "{{ chart_base_path }}/monitoring"
+    release_namespace: monitoring
+    state: present
+
+- name: Deploy ArgoCD Helm chart
+  kubernetes.core.helm:
+    name: argocd
+    chart_ref: "{{ chart_base_path }}/argocd"
+    release_namespace: argocd
+    state: present

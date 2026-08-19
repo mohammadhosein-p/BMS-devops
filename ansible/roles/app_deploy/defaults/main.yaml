@@ -1,0 +1,3 @@
+---
+chart_base_path: "{{ playbook_dir }}/../helm"
+kubeconfig_path: "~/.kube/config"
