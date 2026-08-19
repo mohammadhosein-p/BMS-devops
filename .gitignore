@@ -11,10 +11,11 @@ Thumbs.db
 /final_compose
 
 
-charts/*.tgz
-charts/
+# charts/*.tgz
+helm/monitoring/charts/*.tgz
+helm/argocd/charts/*.tgz
 
-*.tgz
+# *.tgz
 values-local.yaml
 values-dev.yaml
 values-prod.yaml
