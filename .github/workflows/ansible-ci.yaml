@@ -1,0 +1,38 @@
+name: Ansible Roles CI
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+      - feat/ansible
+
+jobs:
+  lint:
+    name: Lint & Syntax Check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core ansible-lint yamllint
+
+      - name: Check Ansible Playbook Syntax
+        run: |
+          cd ansible
+          ansible-playbook site.yaml --syntax-check
+
+      - name: Run Ansible Lint
+        run: |
+          ansible-lint ansible/site.yaml || true
