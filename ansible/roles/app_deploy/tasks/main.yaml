@@ -20,6 +20,14 @@
     - monitoring
     - bms
 
+- name: Build Helm chart dependencies
+  command: "helm dependency build {{ chart_base_path }}/{{ item }}"
+  loop:
+    - bms
+    - monitoring
+    - argocd
+  ignore_errors: true
+
 - name: Deploy BMS Application Helm chart
   kubernetes.core.helm:
     name: bms
