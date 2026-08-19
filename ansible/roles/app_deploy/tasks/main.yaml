@@ -20,13 +20,25 @@
     - monitoring
     - bms
 
+- name: Add Helm repositories
+  kubernetes.core.helm_repository:
+    name: "{{ item.name }}"
+    repo_url: "{{ item.url }}"
+  loop:
+    - { name: 'bitnami', url: 'https://charts.bitnami.com/bitnami' }
+    - { name: 'prometheus-community', url: 'https://prometheus-community.github.io/helm-charts' }
+    - { name: 'grafana', url: 'https://grafana.github.io/helm-charts' }
+    - { name: 'argo', url: 'https://argoproj.github.io/argo-helm' }
+
+- name: Update Helm repositories
+  command: helm repo update
+
 - name: Build Helm chart dependencies
   command: "helm dependency build {{ chart_base_path }}/{{ item }}"
   loop:
     - bms
     - monitoring
     - argocd
-  ignore_errors: true
 
 - name: Deploy BMS Application Helm chart
   kubernetes.core.helm:
