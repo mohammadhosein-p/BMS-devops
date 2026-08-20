@@ -60,10 +60,11 @@ jobs:
       - name: Run Ansible Playbook
         run: |
           cd ansible
-          sudo -E env "PATH=$PATH" ansible-playbook site.yaml
+          sudo -E env "PATH=$PATH" ANSIBLE_STDOUT_CALLBACK=default ANSIBLE_CONFIG=ansible.cfg ansible-playbook site.yaml -i "localhost," -c local
 
       - name: Verify Kind Cluster and Deployed Pods
         run: |
+          sudo chown -R $USER:$USER ~/.kube
           kubectl get nodes
           kubectl get namespaces
           kubectl get pods -A
