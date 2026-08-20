@@ -1,0 +1,70 @@
+name: Ansible Roles CI
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+      - feat/ansible
+
+jobs:
+  lint:
+    name: Lint & Syntax Check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Linting Tools & Ansible Collections
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core ansible-lint yamllint kubernetes jsonpatch pyyaml
+          ansible-galaxy collection install kubernetes.core community.general
+
+      - name: Check Ansible Playbook Syntax
+        run: |
+          cd ansible
+          ansible-playbook site.yaml --syntax-check
+
+      - name: Run Ansible Lint
+        run: |
+          ansible-lint ansible/site.yaml
+
+  integration-test:
+    name: Functional Integration Test
+    needs: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies & Ansible Collections
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core kubernetes jsonpatch pyyaml
+          ansible-galaxy collection install kubernetes.core community.general
+
+      - name: Run Ansible Playbook
+        run: |
+          cd ansible
+          sudo -E env "PATH=$PATH" ANSIBLE_STDOUT_CALLBACK=default ANSIBLE_CONFIG=ansible.cfg ansible-playbook site.yaml -i "localhost," -c local
+
+      - name: Verify Kind Cluster and Deployed Pods
+        run: |
+          sudo chown -R $USER:$USER ~/.kube
+          kubectl get nodes
+          kubectl get namespaces
+          kubectl get pods -A

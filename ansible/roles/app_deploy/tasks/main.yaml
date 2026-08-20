@@ -1,0 +1,62 @@
+---
+- name: Install Python Kubernetes libraries via apt
+  ansible.builtin.apt:
+    name:
+      - python3-kubernetes
+      - python3-jsonpatch
+      - python3-yaml
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create application namespaces
+  kubernetes.core.k8s:
+    name: "{{ item }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  loop:
+    - argocd
+    - monitoring
+    - bms
+
+- name: Add Helm repositories
+  kubernetes.core.helm_repository:
+    name: "{{ item.name }}"
+    repo_url: "{{ item.url }}"
+  loop:
+    - { name: 'prometheus-community', url: 'https://prometheus-community.github.io/helm-charts' }
+    - { name: 'grafana', url: 'https://grafana.github.io/helm-charts' }
+    - { name: 'argo', url: 'https://argoproj.github.io/argo-helm' }
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+
+- name: Build Helm chart dependencies for monitoring and argocd
+  ansible.builtin.command: "helm dependency build {{ app_deploy_chart_base_path }}/{{ item }}"
+  loop:
+    - monitoring
+    - argocd
+  changed_when: false
+
+- name: Deploy BMS Application Helm chart
+  kubernetes.core.helm:
+    name: bms
+    chart_ref: "{{ app_deploy_chart_base_path }}/bms"
+    release_namespace: bms
+    state: present
+
+- name: Deploy Monitoring Helm chart
+  kubernetes.core.helm:
+    name: monitoring
+    chart_ref: "{{ app_deploy_chart_base_path }}/monitoring"
+    release_namespace: monitoring
+    state: present
+
+- name: Deploy ArgoCD Helm chart
+  kubernetes.core.helm:
+    name: argocd
+    chart_ref: "{{ app_deploy_chart_base_path }}/argocd"
+    release_namespace: argocd
+    state: present

@@ -1,0 +1,3 @@
+---
+app_deploy_chart_base_path: "{{ playbook_dir }}/../helm"
+app_deploy_kubeconfig_path: "~/.kube/config"

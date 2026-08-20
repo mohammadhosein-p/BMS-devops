@@ -1,0 +1,6 @@
+---
+k8s_tools_kubectl_version: "v1.30.0"
+k8s_tools_helm_version: "v3.15.2"
+k8s_tools_kind_version: "v0.23.0"
+k8s_tools_system_arch: "amd64"
+k8s_tools_bin_dir: "/usr/local/bin"

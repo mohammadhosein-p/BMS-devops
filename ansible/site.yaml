@@ -1,0 +1,10 @@
+---
+- name: Prepare Infrastructure & Deploy Applications
+  hosts: localhost
+  connection: local
+  roles:
+    - common
+    - docker
+    - k8s_tools
+    - kind_cluster
+    - app_deploy
