@@ -34,7 +34,7 @@
   changed_when: false
 
 - name: Build Helm chart dependencies for monitoring and argocd
-  ansible.builtin.command: "helm dependency build {{ chart_base_path }}/{{ item }}"
+  ansible.builtin.command: "helm dependency build {{ app_deploy_chart_base_path }}/{{ item }}"
   loop:
     - monitoring
     - argocd
@@ -43,20 +43,20 @@
 - name: Deploy BMS Application Helm chart
   kubernetes.core.helm:
     name: bms
-    chart_ref: "{{ chart_base_path }}/bms"
+    chart_ref: "{{ app_deploy_chart_base_path }}/bms"
     release_namespace: bms
     state: present
 
 - name: Deploy Monitoring Helm chart
   kubernetes.core.helm:
     name: monitoring
-    chart_ref: "{{ chart_base_path }}/monitoring"
+    chart_ref: "{{ app_deploy_chart_base_path }}/monitoring"
     release_namespace: monitoring
     state: present
 
 - name: Deploy ArgoCD Helm chart
   kubernetes.core.helm:
     name: argocd
-    chart_ref: "{{ chart_base_path }}/argocd"
+    chart_ref: "{{ app_deploy_chart_base_path }}/argocd"
     release_namespace: argocd
     state: present

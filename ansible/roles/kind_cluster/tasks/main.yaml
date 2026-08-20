@@ -1,17 +1,17 @@
 ---
 - name: Check if Kind cluster already exists
   ansible.builtin.command: sg docker -c "kind get clusters"
-  register: existing_clusters
+  register: kind_cluster_existing_clusters
   changed_when: false
 
 - name: Render Kind cluster config
   ansible.builtin.template:
     src: kind-config.yaml.j2
-    dest: "{{ kind_config_path }}"
+    dest: "{{ kind_cluster_config_path }}"
     mode: '0644'
-  when: cluster_name not in existing_clusters.stdout_lines
+  when: cluster_name not in kind_cluster_existing_clusters.stdout_lines
 
 - name: Create Kind cluster
-  ansible.builtin.command: sg docker -c "kind create cluster --name {{ cluster_name }} --config {{ kind_config_path }}"
-  when: cluster_name not in existing_clusters.stdout_lines
+  ansible.builtin.command: sg docker -c "kind create cluster --name {{ kind_cluster_cluster_name }} --config {{ kind_cluster_config_path }}"
+  when: cluster_name not in kind_cluster_existing_clusters.stdout_lines
   changed_when: true
